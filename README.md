@@ -1,287 +1,228 @@
-🚗 Dealership Microservices System
+# 🚗 Dealership Microservices System
 
-A microservices-based backend system designed as a practical exercise to demonstrate clean architecture, service decomposition, and inter-service communication, using a real-world dealership domain.
+A **microservices-based backend system** designed as a practical exercise to demonstrate **clean architecture, service decomposition, and inter-service communication**, using a real-world dealership domain.
 
-The project is built with Java & Spring Boot, uses REST APIs, includes initial gRPC examples, and is fully prepared for Kubernetes (K8s) deployment.
+The project is built with **Java & Spring Boot**, uses **REST APIs**, includes **initial gRPC examples**, and is **fully prepared for Kubernetes (K8s) deployment**.
 
-📚 Table of Contents
+---
 
-Overview
+## 📚 Table of Contents
 
-Architecture
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Microservices](#microservices)
+  - [Places (Integrated into Offices)](#places-integrated-into-offices)
+  - [Offices](#offices)
+  - [Vehicles](#vehicles)
+  - [Maintain (Repairs)](#maintain-repairs)
+  - [Sales](#sales)
+  - [Customers](#customers)
+- [Inter-Service Communication](#inter-service-communication)
+- [Kubernetes Deployment](#kubernetes-deployment)
+- [Testing Status](#testing-status)
+- [Future Improvements](#future-improvements)
 
-Microservices
+---
 
-Places (Integrated into Offices)
+## 🧩 Overview
 
-Offices
-
-Vehicles
-
-Maintain (Repairs)
-
-Sales
-
-Customers
-
-Inter-Service Communication
-
-Kubernetes Deployment
-
-Testing Status
-
-Future Improvements
-
-🧩 Overview
-
-This repository contains a distributed backend system composed of multiple independent microservices.
+This repository contains a **distributed backend system** composed of multiple independent microservices.
 
 The main goals of this project are:
 
-Apply microservices architecture principles
+- Apply **microservices architecture** principles
+- Model realistic **business rules**
+- Demonstrate **service-to-service communication**
+- Show readiness for **Kubernetes-based deployments**
+- Provide a clean and extensible base for future improvements
 
-Model realistic business rules
+> ⚠️ **Note**: Unit and integration tests are pending and will be added in future iterations.
 
-Demonstrate service-to-service communication
+---
 
-Show readiness for Kubernetes-based deployments
+## 🏗 Architecture
 
-Provide a clean and extensible base for future improvements
+- Microservices-based architecture
+- Independent deployments per service
+- No centralized service registry (no Eureka / Spring Cloud)
+- Service discovery handled by **Kubernetes**
+- REST for synchronous communication
+- Initial **gRPC** support (to be expanded)
 
-⚠️ Note: Unit and integration tests are pending and will be added in future iterations.
+Each microservice owns its **domain logic and data**, following clear responsibility boundaries.
 
-🏗 Architecture
+---
 
-Microservices-based architecture
+## 🔧 Microservices
 
-Independent deployments per service
+### Places (Integrated into Offices)
 
-No centralized service registry (no Eureka / Spring Cloud)
-
-Service discovery handled by Kubernetes
-
-REST for synchronous communication
-
-Initial gRPC support (to be expanded)
-
-Each microservice owns its domain logic and data, following clear responsibility boundaries.
-
-🔧 Microservices
-Places (Integrated into Offices)
-
-Originally designed as a standalone microservice, Places was later integrated into the Offices service to simplify deployment and integration.
+Originally designed as a standalone microservice, **Places** was later integrated into the **Offices** service to simplify deployment and integration.
 
 This module is intentionally reusable across other projects.
 
-Entities
+#### Entities
+- **Countries**
+- **Provinces**
+- **Localities**
 
-Countries
+📌 **Design decision**:  
+Buenos Aires (Capital Federal) is treated as a *province* instead of a locality to reduce domain complexity during development.
 
-Provinces
+---
 
-Localities
-
-📌 Design decision:
-Buenos Aires (Capital Federal) is treated as a province instead of a locality to reduce domain complexity during development.
-
-Offices
+### Offices
 
 Manages dealership offices and delivery configurations.
 
-Entities
+#### Entities
+- **Office** – Dealership branches
+- **TypeOffice** – Office type (Central or Dealership)
+- **DeliverySchedules** – Delivery times:
+  - Central → Dealership
+  - Local delivery within the same dealership
 
-Office – Dealership branches
+#### Key Rules
+- The **Central office always has `id = 1`**
+- Creating or modifying another Central office is not allowed
+- Delivery times are globally configured (MVP simplification)
 
-TypeOffice – Office type (Central or Dealership)
+#### gRPC
+This service includes a **working gRPC example**, serving as a foundation for future gRPC-based communication between services.
 
-DeliverySchedules – Delivery times:
+---
 
-Central → Dealership
-
-Local delivery within the same dealership
-
-Key Rules
-
-The Central office always has id = 1
-
-Creating or modifying another Central office is not allowed
-
-Delivery times are globally configured (MVP simplification)
-
-gRPC
-
-This service includes a working gRPC example, serving as a foundation for future gRPC-based communication between services.
-
-Vehicles
+### Vehicles
 
 Manages all vehicle-related data.
 
-Entities
+#### Entities
+- **ModelVehicles** – Vehicle models (year and price)
+- **TypeVehicles** – Vehicle types and warranty years
+- **VehicleStates**
+  - Available
+  - Reserved
+  - Sold
+  - Delivered
+  - Under Repair
+- **Vehicles** – Individual vehicles, including:
+  - Current office location
+  - Current state
 
-ModelVehicles – Vehicle models (year and price)
-
-TypeVehicles – Vehicle types and warranty years
-
-VehicleStates
-
-Available
-
-Reserved
-
-Sold
-
-Delivered
-
-Under Repair
-
-Vehicles – Individual vehicles, including:
-
-Current office location
-
-Current state
-
-Features
-
+#### Features
 Vehicles can be queried by:
-
-Office location
-
-State
-
-Model
-
-Type
+- Office location
+- State
+- Model
+- Type
 
 This allows sellers to identify which vehicles are available for sale in their office.
 
-Maintain (Repairs)
+---
+
+### Maintain (Repairs)
 
 Handles vehicle repairs.
 
-Ideally this should be a fully independent microservice, but it was integrated for time constraints.
+> Ideally this should be a fully independent microservice, but it was integrated for time constraints.
 
-Entities
+#### Entities
+- **MechanicalRepairs**
 
-MechanicalRepairs
+#### Business Rules
+- Only **Delivered** vehicles can be repaired
+- When a repair starts:
+  - Vehicle state → **Under Repair**
+- When a repair ends:
+  - Vehicle state → **Delivered**
 
-Business Rules
+#### Warranty Validation
+- Warranty years are copied into the **Sale** at purchase time
+- This preserves historical consistency if warranty rules change
+- Warranty validation requires querying the **Sales** service
 
-Only Delivered vehicles can be repaired
+---
 
-When a repair starts:
+### Sales
 
-Vehicle state → Under Repair
+Manages dealership sales and contains the **most complex business logic**.
 
-When a repair ends:
+#### Entities
+- **Customers**
+- **Employees**
+- **SaleStates**
+  - Pending
+  - Completed
+  - Canceled
+- **Sales**
 
-Vehicle state → Delivered
-
-Warranty Validation
-
-Warranty years are copied into the Sale at purchase time
-
-This preserves historical consistency if warranty rules change
-
-Warranty validation requires querying the Sales service
-
-Sales
-
-Manages dealership sales and contains the most complex business logic.
-
-Entities
-
-Customers
-
-Employees
-
-SaleStates
-
-Pending
-
-Completed
-
-Canceled
-
-Sales
-
-Core Logic
-
+#### Core Logic
 When creating a sale:
-
-Validates vehicle and office existence
-
-Calculates delivery date:
-
-Local delivery if vehicle belongs to the seller’s office
-
-Central → Dealership + local delivery otherwise
-
-Retrieves warranty data from Vehicles
-
-Updates vehicle state to Reserved
+- Validates vehicle and office existence
+- Calculates delivery date:
+  - Local delivery if vehicle belongs to the seller’s office
+  - Central → Dealership + local delivery otherwise
+- Retrieves warranty data from **Vehicles**
+- Updates vehicle state to **Reserved**
 
 When finalizing a sale:
+- Vehicle state → **Sold**
 
-Vehicle state → Sold
+This service interacts heavily with **Offices** and **Vehicles**.
 
-This service interacts heavily with Offices and Vehicles.
+---
 
-Customers
+### Customers
 
 Manages customer information.
 
-Entities
-
-Customers
+#### Entities
+- **Customers**
 
 Provides standard CRUD operations.
 
-🔗 Inter-Service Communication
+---
 
-REST APIs for most service interactions
+## 🔗 Inter-Service Communication
 
-gRPC:
+- **REST APIs** for most service interactions
+- **gRPC**:
+  - Implemented as a working example in **Offices**
+  - Additional gRPC integrations will be added in other services
 
-Implemented as a working example in Offices
+---
 
-Additional gRPC integrations will be added in other services
+## ☸ Kubernetes Deployment
 
-☸ Kubernetes Deployment
+The repository includes a dedicated **`k8s/` directory** containing:
 
-The repository includes a dedicated k8s/ directory containing:
+- `Deployment` manifests per microservice
+- `Service` definitions for internal communication
+- Environment configuration via YAML
 
-Deployment manifests per microservice
+This allows the full system to be **deployed into a Kubernetes cluster** without external infrastructure dependencies.
 
-Service definitions for internal communication
-
-Environment configuration via YAML
-
-This allows the full system to be deployed into a Kubernetes cluster without external infrastructure dependencies.
-
-✔ No Eureka
-✔ No Spring Cloud Server
+✔ No Eureka  
+✔ No Spring Cloud Server  
 ✔ Kubernetes-native service discovery
 
-🧪 Testing Status
+---
 
-🚧 Pending:
+## 🧪 Testing Status
 
-Unit tests
-
-Integration tests
+🚧 **Pending**:
+- Unit tests
+- Integration tests
 
 These will be added in future iterations to improve robustness and coverage.
 
-🚀 Future Improvements
+---
 
-Add unit and integration tests
+## 🚀 Future Improvements
 
-Expand gRPC usage across microservices
-
-Improve validation rules (e.g. delete constraints)
-
-Extract Maintain into an independent microservice
-
-Add observability (metrics, tracing, logging)
-
-Improve resilience (timeouts, retries)
+- Add unit and integration tests
+- Expand gRPC usage across microservices
+- Improve validation rules (e.g. delete constraints)
+- Extract Maintain into an independent microservice
+- Add observability (metrics, tracing, logging)
+- Improve resilience (timeouts, retries)
