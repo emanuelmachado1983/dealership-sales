@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vehicles-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vehicles-service
+  template:
+    metadata:
+      labels:
+        app: vehicles-service
+    spec:
+      containers:
+        - name: vehicles-service
+          image: vehicles-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: SERVER_PORT
+              value: "8083"
+            
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: vehicles-service
+spec:
+  type: ClusterIP
+  selector:
+    app: vehicles-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+      
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vehicles-ingress
+spec:
+  rules:
+    - host: vehicles.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vehicles-service
+                port:
+                  number: 8083

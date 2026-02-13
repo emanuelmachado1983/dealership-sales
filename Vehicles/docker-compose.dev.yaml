@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  api:
+    user: root
+    container_name: vehicles-service-dev
+    image: vehicles-service-dev:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    working_dir: /app
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SERVER_PORT=8083
+    volumes:
+      - ./src:/app/src
+      - ./pom.xml:/app/pom.xml
+      - ./target:/app/target
+    command: mvn spring-boot:run
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 50s
+      timeout: 10s
+      retries: 5
+      start_period: 40s

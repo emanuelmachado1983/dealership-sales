@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: sales-service-prod
+    image: sales-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    working_dir: /app
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8084
+    command: java -jar app.jar
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/"]
+      interval: 50s
+      timeout: 10s
+      retries: 5
+      start_period: 40s

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: maintain-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: maintain-service
+  template:
+    metadata:
+      labels:
+        app: maintain-service
+    spec:
+      containers:
+        - name: maintain-service
+          image: maintain-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8086
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: SERVER_PORT
+              value: "8086"
+            
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: maintain-service
+spec:
+  type: ClusterIP
+  selector:
+    app: maintain-service
+  ports:
+    - port: 8086
+      targetPort: 8086
+      
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: maintain-ingress
+spec:
+  rules:
+    - host: maintain.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: maintain-service
+                port:
+                  number: 8086

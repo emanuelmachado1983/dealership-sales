@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: offices-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: offices-service
+  template:
+    metadata:
+      labels:
+        app: offices-service
+    spec:
+      containers:
+        - name: offices-service
+          image: offices-service:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8082   # REST
+            - containerPort: 9092   # gRPC
+
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: SERVER_PORT
+              value: "8082"
+            - name: GRPC_SERVER_PORT
+              value: "9092"
+
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: offices-service
+spec:
+  type: ClusterIP
+  selector:
+    app: offices-service
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
+    - name: grpc
+      port: 9092
+      targetPort: 9092
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: offices-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: offices.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: offices-service
+                port:
+                  number: 8082

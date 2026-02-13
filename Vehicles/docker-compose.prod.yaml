@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: vehicles-service-prod
+    image: vehicles-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    working_dir: /app
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8083
+    command: java -jar app.jar
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 50s
+      timeout: 10s
+      retries: 5
+      start_period: 40s

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: maintain-service-prod
+    image: maintain-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    working_dir: /app
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8086
+    command: java -jar app.jar
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/"]
+      interval: 50s
+      timeout: 10s
+      retries: 5
+      start_period: 40s

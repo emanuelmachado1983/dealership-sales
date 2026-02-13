@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package offices.grpc;
+
+option java_multiple_files = true;
+option java_package = "org.emanuel.contracts.proto.offices";
+option java_outer_classname = "OfficeProto";
+
+message IdRequest {
+  int64 id = 1;
+}
+
+message TypeOffice {
+  int64 id = 1;
+  string name = 2;
+}
+
+message OfficeMinimal {
+  int64 id = 1;
+  int64 idCountry = 2;
+  int64 idProvince = 3;
+  int64 idLocality = 4;
+  string address = 5;
+  string name = 6;
+  string openingDate = 7; // fecha en ISO string
+  TypeOffice typeOffice = 8;
+}
+
+service OfficeService {
+  rpc GetById (IdRequest) returns (OfficeMinimal);
+}
+
