@@ -223,3 +223,4 @@ These will be added in future iterations to improve robustness and coverage.
 - Add unit and integration tests
 - Expand gRPC usage across microservices
 - Improve resilience (timeouts, retries)
+- Add Kafka example.
