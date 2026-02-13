@@ -187,7 +187,7 @@ Provides standard CRUD operations.
 
 - **REST APIs** for most service interactions
 - **gRPC**:
-  - Implemented as a working example in **Offices**
+  - Implemented as a working example between **Offices** and **Vehicles**.
   - Additional gRPC integrations will be added in other services
 
 ---
@@ -222,7 +222,4 @@ These will be added in future iterations to improve robustness and coverage.
 
 - Add unit and integration tests
 - Expand gRPC usage across microservices
-- Improve validation rules (e.g. delete constraints)
-- Extract Maintain into an independent microservice
-- Add observability (metrics, tracing, logging)
 - Improve resilience (timeouts, retries)
