@@ -210,17 +210,11 @@ This allows the full system to be **deployed into a Kubernetes cluster** without
 
 ## 🧪 Testing Status
 
-🚧 **Pending**:
-- Unit tests
-- Integration tests
-
-These will be added in future iterations to improve robustness and coverage.
-
+Performed unit tests for each project. For this, I used Claude.
 ---
 
 ## 🚀 Future Improvements
 
-- Add unit and integration tests
 - Expand gRPC usage across microservices
 - Improve resilience (timeouts, retries)
 - Add Kafka example.
